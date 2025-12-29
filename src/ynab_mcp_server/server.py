@@ -5,9 +5,19 @@ import os
 import httpx
 import yaml
 from fastmcp import FastMCP
+from fastmcp.server.openapi import MCPType, RouteMap
 
 YNAB_API_BASE = "https://api.ynab.com/v1"
 YNAB_OPENAPI_SPEC_URL = "https://api.ynab.com/papi/open_api_spec.yaml"
+
+# Routes to exclude from the MCP server (these return too much data and bomb the context)
+EXCLUDED_ROUTES = [
+    RouteMap(
+        methods=["GET"],
+        pattern=r"^/budgets/\{budget_id\}/payees$",
+        mcp_type=MCPType.EXCLUDE,
+    ),
+]
 
 
 def create_server() -> FastMCP:
@@ -36,6 +46,7 @@ def create_server() -> FastMCP:
         openapi_spec=openapi_spec,
         client=client,
         name="YNAB MCP Server",
+        route_maps=EXCLUDED_ROUTES,
     )
 
 
@@ -43,4 +54,3 @@ mcp = create_server()
 
 if __name__ == "__main__":
     mcp.run()
-
