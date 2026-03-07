@@ -9,6 +9,8 @@ import yaml
 from fastmcp import FastMCP
 from fastmcp.server.openapi import MCPType, RouteMap
 
+from ynab_mcp_server.body_wrappers import apply_body_wrapper_fixes
+
 YNAB_API_BASE = "https://api.ynab.com/v1"
 YNAB_OPENAPI_SPEC_URL = "https://api.ynab.com/papi/open_api_spec.yaml"
 
@@ -80,12 +82,14 @@ def create_server() -> FastMCP:
     )
 
     # Create MCP server from OpenAPI spec
-    return FastMCP.from_openapi(
+    server = FastMCP.from_openapi(
         openapi_spec=openapi_spec,
         client=client,
         name="YNAB MCP Server",
         route_maps=EXCLUDED_ROUTES,
     )
+    apply_body_wrapper_fixes(server)
+    return server
 
 
 mcp = create_server()
