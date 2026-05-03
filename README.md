@@ -56,6 +56,20 @@ Add the following to your Claude Desktop configuration file:
 }
 ```
 
+### With Claude Code
+
+Use [Claude Code](https://code.claude.com/docs/en/mcp)'s MCP CLI (`claude mcp add`). Replace `/absolute/path/to/this/project` with where you cloned this repo. The **`--`** before the server executable is required so the CLI parses the command path correctly.
+
+For all projects (**user** scope):
+
+```bash
+claude mcp add ynab --scope user \
+  -e "YNAB_API_TOKEN=your-token-here" \
+  -- /absolute/path/to/this/project/.venv/bin/ynab-mcp-server
+```
+
+For the current directory only, omit `--scope user` or use `--scope local`. Use `claude mcp list` to verify and `claude mcp remove ynab --scope user` (or `local`) to uninstall.
+
 ### With Cursor
 
 Add the following to your Cursor MCP settings (`~/.cursor/mcp.json` for global or `.cursor/mcp.json` in your project):
