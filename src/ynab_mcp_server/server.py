@@ -5,7 +5,7 @@ import os
 import httpx
 import yaml
 from fastmcp import FastMCP
-from fastmcp.server.openapi import MCPType, RouteMap
+from fastmcp.server.providers.openapi import MCPType, OpenAPITool, RouteMap
 
 YNAB_API_BASE = "https://api.ynab.com/v1"
 YNAB_OPENAPI_SPEC_URL = "https://api.ynab.com/papi/open_api_spec.yaml"
@@ -18,6 +18,12 @@ EXCLUDED_ROUTES = [
         mcp_type=MCPType.EXCLUDE,
     ),
 ]
+
+
+def _omit_openapi_output_schemas(_route: object, component: object) -> None:
+    """Cursor rejects some YNAB OpenAPI response schemas; tools do not need them."""
+    if isinstance(component, OpenAPITool):
+        component.output_schema = None
 
 
 def create_server() -> FastMCP:
@@ -47,6 +53,7 @@ def create_server() -> FastMCP:
         client=client,
         name="YNAB MCP Server",
         route_maps=EXCLUDED_ROUTES,
+        mcp_component_fn=_omit_openapi_output_schemas,
     )
 
 

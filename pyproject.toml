@@ -4,7 +4,11 @@ version = "0.1.0"
 description = "An MCP server for the YNAB (You Need A Budget) API"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["fastmcp>=2.14.1", "httpx>=0.28.1", "pyyaml>=6.0.3"]
+dependencies = [
+    "fastmcp>=3.2.4",
+    "httpx>=0.28.1",
+    "pyyaml>=6.0.3",
+]
 
 [project.scripts]
 ynab-mcp-server = "ynab_mcp_server.server:mcp.run"
