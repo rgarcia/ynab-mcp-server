@@ -2,7 +2,7 @@
 
 An MCP (Model Context Protocol) server for the [YNAB (You Need A Budget)](https://www.ynab.com/) API, built with [FastMCP](https://gofastmcp.com/).
 
-This server automatically exposes all YNAB API endpoints as MCP tools, allowing AI assistants like Claude to interact with your YNAB budgets, accounts, transactions, and more.
+This server automatically exposes most YNAB API endpoints as MCP tools, allowing AI assistants like Claude to interact with your YNAB plans, accounts, transactions, and more.
 
 ## Prerequisites
 
@@ -109,31 +109,34 @@ Add the following to your OpenCode configuration file (`~/.config/opencode/openc
 
 ## Available Tools
 
-The server automatically exposes all YNAB API endpoints as MCP tools. Here are some of the available operations:
+The server automatically exposes most YNAB API endpoints as MCP tools. Here are some of the available operations:
 
 ### User
 
 - `getUser` - Get authenticated user information
 
-### Budgets
+### Plans
 
-- `getBudgets` - List all budgets
-- `getBudgetById` - Get a single budget with all related entities
-- `getBudgetSettingsById` - Get budget settings
+- `getPlans` - List all plans
+- `getPlanById` - Get a single plan with all related entities
+- `getPlanSettingsById` - Get plan settings
 
 ### Accounts
 
-- `getAccounts` - List all accounts for a budget
+- `getAccounts` - List all accounts for a plan
 - `getAccountById` - Get a single account
 - `createAccount` - Create a new account
 
 ### Categories
 
-- `getCategories` - List all categories for a budget
+- `getCategories` - List all categories for a plan
+- `createCategory` - Create a new category
 - `getCategoryById` - Get a single category
 - `updateCategory` - Update a category
 - `getMonthCategoryById` - Get a category for a specific month
 - `updateMonthCategory` - Update a category for a specific month
+- `createCategoryGroup` - Create a new category group
+- `updateCategoryGroup` - Update a category group
 
 ### Transactions
 
@@ -149,7 +152,7 @@ The server automatically exposes all YNAB API endpoints as MCP tools. Here are s
 
 ### Payees
 
-- `getPayees` - List all payees
+- `createPayee` - Create a new payee
 - `getPayeeById` - Get a single payee
 - `updatePayee` - Update a payee
 
@@ -159,11 +162,12 @@ The server automatically exposes all YNAB API endpoints as MCP tools. Here are s
 - `getScheduledTransactionById` - Get a single scheduled transaction
 - `createScheduledTransaction` - Create a new scheduled transaction
 - `updateScheduledTransaction` - Update a scheduled transaction
+- `deleteScheduledTransaction` - Delete a scheduled transaction
 
 ### Months
 
-- `getBudgetMonths` - List budget months
-- `getBudgetMonth` - Get a single budget month
+- `getPlanMonths` - List plan months
+- `getPlanMonth` - Get a single plan month
 
 ## Example Usage
 
@@ -246,7 +250,7 @@ This server uses FastMCP's `from_openapi()` method to automatically generate MCP
 1. Fetches the YNAB OpenAPI spec from `https://api.ynab.com/papi/open_api_spec.yaml`
 2. Parses the specification
 3. Creates an authenticated HTTP client with your API token
-4. Generates MCP tools for each API endpoint
+4. Generates MCP tools for each included API endpoint
 
 ## Resources
 

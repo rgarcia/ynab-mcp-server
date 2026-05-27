@@ -14,6 +14,11 @@ YNAB_OPENAPI_SPEC_URL = "https://api.ynab.com/papi/open_api_spec.yaml"
 EXCLUDED_ROUTES = [
     RouteMap(
         methods=["GET"],
+        pattern=r"^/plans/\{plan_id\}/payees$",
+        mcp_type=MCPType.EXCLUDE,
+    ),
+    RouteMap(
+        methods=["GET"],
         pattern=r"^/budgets/\{budget_id\}/payees$",
         mcp_type=MCPType.EXCLUDE,
     ),
