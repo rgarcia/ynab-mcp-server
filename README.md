@@ -217,6 +217,9 @@ Once created, your skills live in `.skills/` and Claude will automatically apply
 
 ## Development
 
+See [DEVELOPMENT.md](https://github.com/rgarcia/ynab-mcp-server/blob/main/DEVELOPMENT.md)
+for release and publishing instructions.
+
 Clone the repository and install its locked dependencies:
 
 ```bash
@@ -235,6 +238,7 @@ YNAB_API_TOKEN=your-token-here uv run ynab-mcp-server
 
 ```
 .
+├── DEVELOPMENT.md
 ├── LICENSE
 ├── pyproject.toml
 ├── README.md
@@ -255,24 +259,6 @@ This server uses FastMCP's `from_openapi()` method to automatically generate MCP
 2. Parses the specification
 3. Creates an authenticated HTTP client with your API token
 4. Generates MCP tools for each API endpoint
-
-### Publishing
-
-Releases are published to PyPI through GitHub's `pypi` environment and PyPI
-Trusted Publishing. The publisher settings must use:
-
-- PyPI project: `ynab-mcp-tools`
-- GitHub owner: `rgarcia`
-- Repository: `ynab-mcp-server`
-- Workflow: `publish.yml`
-- Environment: `pypi`
-
-To publish a release:
-
-1. Update the version with `uv version <version>` and merge that change.
-2. Publish a GitHub release whose tag matches the version, such as `v0.1.0`.
-3. The publish workflow builds and smoke-tests both distributions before
-   uploading them to PyPI.
 
 ## Resources
 
