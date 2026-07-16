@@ -57,7 +57,10 @@ def create_server() -> FastMCP:
     )
 
 
-mcp = create_server()
+def main() -> None:
+    """Run the YNAB MCP server over stdio."""
+    create_server().run()
+
 
 if __name__ == "__main__":
-    mcp.run()
+    main()
