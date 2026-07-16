@@ -6,20 +6,12 @@ This server automatically exposes all YNAB API endpoints as MCP tools, allowing 
 
 ## Prerequisites
 
-- Python 3.11 or higher
 - [uv](https://docs.astral.sh/uv/) package manager
 - A YNAB account with API access
 
 ## Setup
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/rgarcia/ynab-mcp-server.git
-cd ynab-mcp-server
-```
-
-### 2. Get Your YNAB API Token
+### Get Your YNAB API Token
 
 1. Log in to your YNAB account at [app.ynab.com](https://app.ynab.com)
 2. Go to **Account Settings** → **Developer Settings**
@@ -27,13 +19,11 @@ cd ynab-mcp-server
 4. Give your token a name and click **Generate**
 5. Copy the token (you won't be able to see it again!)
 
-### 3. Install Dependencies
+## Add the Server to Your MCP Client
 
-```bash
-uv sync
-```
-
-## Running the Server
+The published package runs with `uvx ynab-mcp-tools`. `uvx` downloads it from
+PyPI and runs it in an isolated environment, so you do not need to clone this
+repository or manage a virtualenv.
 
 ### With Claude Desktop
 
@@ -46,8 +36,8 @@ Add the following to your Claude Desktop configuration file:
 {
   "mcpServers": {
     "ynab": {
-      "command": "/absolute/path/to/this/project/.venv/bin/ynab-mcp-server",
-      "args": [],
+      "command": "uvx",
+      "args": ["ynab-mcp-tools"],
       "env": {
         "YNAB_API_TOKEN": "your-token-here"
       }
@@ -58,14 +48,15 @@ Add the following to your Claude Desktop configuration file:
 
 ### With Claude Code
 
-Use [Claude Code](https://code.claude.com/docs/en/mcp)'s MCP CLI (`claude mcp add`). Replace `/absolute/path/to/this/project` with where you cloned this repo. The **`--`** before the server executable is required so the CLI parses the command path correctly.
+Use [Claude Code](https://code.claude.com/docs/en/mcp)'s MCP CLI. The `--`
+separates Claude's options from the server command.
 
 For all projects (**user** scope):
 
 ```bash
 claude mcp add ynab --scope user \
   -e "YNAB_API_TOKEN=your-token-here" \
-  -- /absolute/path/to/this/project/.venv/bin/ynab-mcp-server
+  -- uvx ynab-mcp-tools
 ```
 
 For the current directory only, omit `--scope user` or use `--scope local`. Use `claude mcp list` to verify and `claude mcp remove ynab --scope user` (or `local`) to uninstall.
@@ -78,8 +69,8 @@ Add the following to your Cursor MCP settings (`~/.cursor/mcp.json` for global o
 {
   "mcpServers": {
     "ynab": {
-      "command": "/absolute/path/to/this/project/.venv/bin/ynab-mcp-server",
-      "args": [],
+      "command": "uvx",
+      "args": ["ynab-mcp-tools"],
       "env": {
         "YNAB_API_TOKEN": "your-token-here"
       }
@@ -97,7 +88,7 @@ Add the following to your OpenCode configuration file (`~/.config/opencode/openc
   "mcp": {
     "ynab": {
       "type": "local",
-      "command": ["/absolute/path/to/this/project/.venv/bin/ynab-mcp-server"],
+      "command": ["uvx", "ynab-mcp-tools"],
       "enabled": true,
       "environment": {
         "YNAB_API_TOKEN": "your-token-here"
@@ -226,12 +217,29 @@ Once created, your skills live in `.skills/` and Claude will automatically apply
 
 ## Development
 
+Clone the repository and install its locked dependencies:
+
+```bash
+git clone https://github.com/rgarcia/ynab-mcp-server.git
+cd ynab-mcp-server
+uv sync --locked
+```
+
+Run the development checkout with:
+
+```bash
+YNAB_API_TOKEN=your-token-here uv run ynab-mcp-server
+```
+
 ### Project Structure
 
 ```
 .
+├── LICENSE
 ├── pyproject.toml
 ├── README.md
+├── tests/
+│   └── smoke_test.py
 ├── uv.lock
 └── src/
     └── ynab_mcp_server/
@@ -247,6 +255,24 @@ This server uses FastMCP's `from_openapi()` method to automatically generate MCP
 2. Parses the specification
 3. Creates an authenticated HTTP client with your API token
 4. Generates MCP tools for each API endpoint
+
+### Publishing
+
+Releases are published to PyPI through GitHub's `pypi` environment and PyPI
+Trusted Publishing. The publisher settings must use:
+
+- PyPI project: `ynab-mcp-tools`
+- GitHub owner: `rgarcia`
+- Repository: `ynab-mcp-server`
+- Workflow: `publish.yml`
+- Environment: `pypi`
+
+To publish a release:
+
+1. Update the version with `uv version <version>` and merge that change.
+2. Publish a GitHub release whose tag matches the version, such as `v0.1.0`.
+3. The publish workflow builds and smoke-tests both distributions before
+   uploading them to PyPI.
 
 ## Resources
 
