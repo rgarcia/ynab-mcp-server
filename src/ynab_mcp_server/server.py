@@ -10,11 +10,12 @@ from fastmcp.server.providers.openapi import MCPType, OpenAPITool, RouteMap
 YNAB_API_BASE = "https://api.ynab.com/v1"
 YNAB_OPENAPI_SPEC_URL = "https://api.ynab.com/papi/open_api_spec.yaml"
 
-# Routes to exclude from the MCP server (these return too much data and bomb the context)
+# Routes to exclude from the MCP server (these return too much data and bomb the context).
+# YNAB renamed "budgets" to "plans" in its API paths; match both spellings.
 EXCLUDED_ROUTES = [
     RouteMap(
         methods=["GET"],
-        pattern=r"^/budgets/\{budget_id\}/payees$",
+        pattern=r"^/(budgets|plans)/\{(budget|plan)_id\}/payees$",
         mcp_type=MCPType.EXCLUDE,
     ),
 ]

@@ -100,49 +100,62 @@ Add the following to your OpenCode configuration file (`~/.config/opencode/openc
 
 ## Available Tools
 
-The server automatically exposes all YNAB API endpoints as MCP tools. Here are some of the available operations:
+The server automatically exposes the YNAB API endpoints as MCP tools. YNAB's API
+calls budgets "plans", so tool names and parameters use `plan` (for example
+`getPlans` and `plan_id`).
 
 ### User
 
 - `getUser` - Get authenticated user information
 
-### Budgets
+### Plans (Budgets)
 
-- `getBudgets` - List all budgets
-- `getBudgetById` - Get a single budget with all related entities
-- `getBudgetSettingsById` - Get budget settings
+- `getPlans` - List all plans
+- `getPlanById` - Get a single plan with all related entities
+- `getPlanSettingsById` - Get plan settings
 
 ### Accounts
 
-- `getAccounts` - List all accounts for a budget
+- `getAccounts` - List all accounts for a plan
 - `getAccountById` - Get a single account
 - `createAccount` - Create a new account
 
 ### Categories
 
-- `getCategories` - List all categories for a budget
+- `getCategories` - List all categories for a plan
 - `getCategoryById` - Get a single category
+- `createCategory` - Create a category
 - `updateCategory` - Update a category
 - `getMonthCategoryById` - Get a category for a specific month
 - `updateMonthCategory` - Update a category for a specific month
+- `createCategoryGroup` - Create a category group
+- `updateCategoryGroup` - Update a category group
 
 ### Transactions
 
 - `getTransactions` - List transactions
 - `getTransactionById` - Get a single transaction
-- `createTransaction` - Create a new transaction
+- `createTransaction` - Create one or more transactions
 - `updateTransaction` - Update a transaction
+- `updateTransactions` - Update multiple transactions
 - `deleteTransaction` - Delete a transaction
-- `importTransactions` - Import transactions
+- `importTransactions` - Import transactions from linked accounts
 - `getTransactionsByAccount` - List transactions for an account
 - `getTransactionsByCategory` - List transactions for a category
 - `getTransactionsByPayee` - List transactions for a payee
+- `getTransactionsByMonth` - List transactions for a month
 
 ### Payees
 
-- `getPayees` - List all payees
 - `getPayeeById` - Get a single payee
+- `createPayee` - Create a payee
 - `updatePayee` - Update a payee
+- `getPayeeLocations` - List payee locations
+- `getPayeeLocationById` - Get a single payee location
+- `getPayeeLocationsByPayee` - List locations for a payee
+
+`getPayees` (list all payees) is intentionally excluded because it returns
+enough data to overwhelm the model's context.
 
 ### Scheduled Transactions
 
@@ -150,11 +163,19 @@ The server automatically exposes all YNAB API endpoints as MCP tools. Here are s
 - `getScheduledTransactionById` - Get a single scheduled transaction
 - `createScheduledTransaction` - Create a new scheduled transaction
 - `updateScheduledTransaction` - Update a scheduled transaction
+- `deleteScheduledTransaction` - Delete a scheduled transaction
 
 ### Months
 
-- `getBudgetMonths` - List budget months
-- `getBudgetMonth` - Get a single budget month
+- `getPlanMonths` - List plan months
+- `getPlanMonth` - Get a single plan month
+
+### Money Movements
+
+- `getMoneyMovements` - List money movements
+- `getMoneyMovementsByMonth` - List money movements for a month
+- `getMoneyMovementGroups` - List money movement groups
+- `getMoneyMovementGroupsByMonth` - List money movement groups for a month
 
 ## Example Usage
 
