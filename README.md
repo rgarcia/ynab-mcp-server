@@ -1,57 +1,18 @@
 # YNAB MCP Server
 
-An MCP (Model Context Protocol) server for the [YNAB (You Need A Budget)](https://www.ynab.com/) API, built with [FastMCP](https://gofastmcp.com/).
+An [MCP](https://modelcontextprotocol.io/) server for the [YNAB](https://www.ynab.com/) API, built with [FastMCP](https://gofastmcp.com/).
 
-This server automatically exposes all YNAB API endpoints as MCP tools, allowing AI assistants like Claude to interact with your YNAB budgets, accounts, transactions, and more.
-
-## Prerequisites
-
-- [uv](https://docs.astral.sh/uv/) package manager
-- A YNAB account with API access
+Tools are generated at startup from YNAB's published OpenAPI spec, so new YNAB endpoints show up without a new release of this package.
 
 ## Setup
 
-### Get Your YNAB API Token
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
+2. Create a YNAB personal access token at [app.ynab.com/settings/developer](https://app.ynab.com/settings/developer) (**New Token**). Copy it right away; YNAB only shows it once.
+3. Add the server to your MCP client using one of the snippets below, replacing `your-token-here` with your token.
 
-1. Log in to your YNAB account at [app.ynab.com](https://app.ynab.com)
-2. Go to **Account Settings** → **Developer Settings**
-3. Click **New Token** under "Personal Access Tokens"
-4. Give your token a name and click **Generate**
-5. Copy the token (you won't be able to see it again!)
+Every snippet runs `uvx ynab-mcp-tools`, which downloads the package from PyPI and runs it in an isolated environment. You don't need to clone this repository.
 
-## Add the Server to Your MCP Client
-
-The published package runs with `uvx ynab-mcp-tools`. `uvx` downloads it from
-PyPI and runs it in an isolated environment, so you do not need to clone this
-repository or manage a virtualenv.
-
-### With Claude Desktop
-
-Add the following to your Claude Desktop configuration file:
-
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "ynab": {
-      "command": "uvx",
-      "args": ["ynab-mcp-tools"],
-      "env": {
-        "YNAB_API_TOKEN": "your-token-here"
-      }
-    }
-  }
-}
-```
-
-### With Claude Code
-
-Use [Claude Code](https://code.claude.com/docs/en/mcp)'s MCP CLI. The `--`
-separates Claude's options from the server command.
-
-For all projects (**user** scope):
+### Claude Code
 
 ```bash
 claude mcp add ynab --scope user \
@@ -59,11 +20,22 @@ claude mcp add ynab --scope user \
   -- uvx ynab-mcp-tools
 ```
 
-For the current directory only, omit `--scope user` or use `--scope local`. Use `claude mcp list` to verify and `claude mcp remove ynab --scope user` (or `local`) to uninstall.
+Drop `--scope user` to add it to the current project only. See the [Claude Code MCP docs](https://code.claude.com/docs/en/mcp).
 
-### With Cursor
+### Codex
 
-Add the following to your Cursor MCP settings (`~/.cursor/mcp.json` for global or `.cursor/mcp.json` in your project):
+```bash
+codex mcp add ynab \
+  --env "YNAB_API_TOKEN=your-token-here" \
+  -- uvx ynab-mcp-tools
+```
+
+### Claude Desktop and Cursor
+
+Both use the same JSON. Add it to:
+
+- **Claude Desktop**: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
+- **Cursor**: `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project)
 
 ```json
 {
@@ -79,148 +51,76 @@ Add the following to your Cursor MCP settings (`~/.cursor/mcp.json` for global o
 }
 ```
 
-### With OpenCode
+To find the Claude Desktop config file without typing the path, open **Settings → Desktop App → Extensions (Manage) → Local MCP Servers → Edit Config**. Finder opens with the file selected. On macOS, right-click it and choose **Open With → TextEdit**, paste the JSON above, save, then quit and reopen Claude Desktop.
 
-Add the following to your OpenCode configuration file (`~/.config/opencode/opencode.json`):
+### ChatGPT desktop app
+
+1. Open **Settings**, search for "MCP", and click **MCPs / Plugins**.
+2. Click **Add → Add MCP Server** and fill in:
+   - **Name**: `YNAB`
+   - **Command to launch**: `uvx`
+   - **Arguments**: `ynab-mcp-tools`
+   - **Environment Variables**: key `YNAB_API_TOKEN`, value `your-token-here`
+
+If a desktop app reports that it can't find `uvx`, replace `uvx` with the full path printed by `which uvx` in a terminal (usually `~/.local/bin/uvx`, written out as `/Users/<you>/.local/bin/uvx`).
+
+### OpenCode
+
+Add to `~/.config/opencode/opencode.json`:
 
 ```json
 {
   "mcp": {
-    "ynab": {
-      "type": "local",
-      "command": ["uvx", "ynab-mcp-tools"],
-      "enabled": true,
-      "environment": {
-        "YNAB_API_TOKEN": "your-token-here"
+    "servers": {
+      "ynab": {
+        "type": "local",
+        "command": ["uvx", "ynab-mcp-tools"],
+        "environment": {
+          "YNAB_API_TOKEN": "your-token-here"
+        }
       }
     }
   }
 }
 ```
 
-## Available Tools
+## Tools
 
-The server automatically exposes all YNAB API endpoints as MCP tools. Here are some of the available operations:
+YNAB's API now calls budgets **plans**, so tools and parameters use that name (`getPlans`, `plan_id`). Pass `last-used` as the `plan_id` to target your most recently opened plan.
 
-### User
+| Area | Tools |
+| --- | --- |
+| User | `getUser` |
+| Plans | `getPlans`, `getPlanSettingsById` |
+| Accounts | `getAccounts`, `getAccountById`, `createAccount` |
+| Categories | `getCategories`, `getCategoryById`, `createCategory`, `updateCategory`, `getMonthCategoryById`, `updateMonthCategory`, `createCategoryGroup`, `updateCategoryGroup` |
+| Payees | `getPayeeById`, `createPayee`, `updatePayee`, `getPayeeLocations`, `getPayeeLocationById`, `getPayeeLocationsByPayee` |
+| Months | `getPlanMonths`, `getPlanMonth` |
+| Money movements | `getMoneyMovements`, `getMoneyMovementsByMonth`, `getMoneyMovementGroups`, `getMoneyMovementGroupsByMonth` |
+| Transactions | `getTransactions`, `getTransactionById`, `createTransaction`, `updateTransaction`, `updateTransactions`, `deleteTransaction`, `getTransactionsByAccount`, `getTransactionsByCategory`, `getTransactionsByPayee`, `getTransactionsByMonth` |
+| Scheduled transactions | `getScheduledTransactions`, `getScheduledTransactionById`, `createScheduledTransaction`, `updateScheduledTransaction`, `deleteScheduledTransaction` |
 
-- `getUser` - Get authenticated user information
+Two kinds of endpoints are left out on purpose:
 
-### Budgets
+- `getPlanById` and `getPayees`: these return an entire plan export or the full payee list, which is too large for a model's context. The narrower tools above cover the same data.
+- Endpoints YNAB marks deprecated, such as `importTransactions`, which YNAB now accepts but ignores.
 
-- `getBudgets` - List all budgets
-- `getBudgetById` - Get a single budget with all related entities
-- `getBudgetSettingsById` - Get budget settings
+YNAB's API has no pagination. The transaction list tools tell the model to pass `since_date`, `until_date`, or `type`, and if a transaction list still comes back over 200,000 characters, the tool returns an error asking the model to retry with a narrower range.
 
-### Accounts
+## Example prompts
 
-- `getAccounts` - List all accounts for a budget
-- `getAccountById` - Get a single account
-- `createAccount` - Create a new account
+- "Show me my unapproved transactions from the last two weeks."
+- "How much have I spent on dining out this month compared to last month?"
+- "Categorize my uncategorized transactions, and ask me about anything ambiguous."
+- "Move $50 from Vacation to Groceries for this month."
 
-### Categories
-
-- `getCategories` - List all categories for a budget
-- `getCategoryById` - Get a single category
-- `updateCategory` - Update a category
-- `getMonthCategoryById` - Get a category for a specific month
-- `updateMonthCategory` - Update a category for a specific month
-
-### Transactions
-
-- `getTransactions` - List transactions
-- `getTransactionById` - Get a single transaction
-- `createTransaction` - Create a new transaction
-- `updateTransaction` - Update a transaction
-- `deleteTransaction` - Delete a transaction
-- `importTransactions` - Import transactions
-- `getTransactionsByAccount` - List transactions for an account
-- `getTransactionsByCategory` - List transactions for a category
-- `getTransactionsByPayee` - List transactions for a payee
-
-### Payees
-
-- `getPayees` - List all payees
-- `getPayeeById` - Get a single payee
-- `updatePayee` - Update a payee
-
-### Scheduled Transactions
-
-- `getScheduledTransactions` - List scheduled transactions
-- `getScheduledTransactionById` - Get a single scheduled transaction
-- `createScheduledTransaction` - Create a new scheduled transaction
-- `updateScheduledTransaction` - Update a scheduled transaction
-
-### Months
-
-- `getBudgetMonths` - List budget months
-- `getBudgetMonth` - Get a single budget month
-
-## Example Usage
-
-Once connected, you can ask Claude things like:
-
-- "Show me my YNAB budgets"
-- "What's my current balance in my checking account?"
-- "List my transactions from last week"
-- "Create a transaction for $50 at the grocery store"
-- "How much have I spent on dining out this month?"
-
-## Creating Custom Skills for Your YNAB Workflow
-
-YNAB workflows are personal. Everyone has their own conventions for handling transactions, categorizing expenses, and managing duplicates. This repo includes a skill system that lets you encode your personal conventions so Claude can learn and apply them consistently.
-
-### Step 1: Explore Your Budget
-
-Start by asking Claude to do something useful with your YNAB data:
-
-```
-"Show me all my unapproved transactions"
-"Help me categorize my uncategorized transactions"
-"Find duplicate transactions in my budget"
-```
-
-Work through the task interactively. As you do, you'll naturally develop conventions. For example:
-
-- "Venmo transactions always have a matching withdrawal in my checking account - I delete the Venmo one and keep the bank record"
-- "Transactions from 'AMZN' should be categorized as 'Shopping' unless the memo mentions 'Kindle'"
-- "Any transaction over $500 should be flagged for review"
-
-### Step 2: Create a Skill to Encode Your Conventions
-
-Once you've established patterns you want to reuse, create a skill to encode them. This repo includes the `skill-creator` skill in `.skills/skill-creator/` to help you build custom skills.
-
-Ask Claude:
-
-```
-"Load the skill-creator skill and help me create a ynab skill that encodes
-the conventions we just used for processing transactions"
-```
-
-The skill-creator will guide you through:
-
-1. Identifying the reusable patterns from your workflow
-2. Creating a SKILL.md file with your conventions
-3. Structuring the skill for future use
-
-### Step 3: Use Your Skills
-
-Once created, your skills live in `.skills/` and Claude will automatically apply them when relevant. You can:
-
-- Add more conventions as you discover them
-- Share skills with others who have similar YNAB setups
-- Build on the included examples
-
-### Included Skills
-
-- `.skills/skill-creator/` - Claude's official guide for creating new skills, included for convenience
+To make your own conventions stick between sessions (how you handle Venmo duplicates, which payees map to which categories), write them into your client's skills or rules, for example a [Claude skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview).
 
 ## Resources
 
-- [Development Guide](https://github.com/rgarcia/ynab-mcp-server/blob/main/DEVELOPMENT.md)
-- [YNAB API Documentation](https://api.ynab.com/)
-- [FastMCP Documentation](https://gofastmcp.com/)
-- [MCP Protocol Specification](https://modelcontextprotocol.io/)
+- [Development guide](https://github.com/rgarcia/ynab-mcp-server/blob/main/DEVELOPMENT.md)
+- [YNAB API documentation](https://api.ynab.com/)
+- [FastMCP documentation](https://gofastmcp.com/)
 
 ## License
 
