@@ -7,6 +7,8 @@ from importlib.metadata import version
 import httpx2
 import yaml
 from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
+from fastmcp.server.middleware import Middleware, MiddlewareContext
 from fastmcp.server.providers.openapi import MCPType, OpenAPITool, RouteMap
 from fastmcp.utilities.openapi import HTTPRoute
 
@@ -27,6 +29,44 @@ EXCLUDED_ROUTES = [
     ),
 ]
 
+# Transaction lists can run to thousands of entries. These tools all accept
+# since_date, until_date, and type, which are the only ways YNAB offers to
+# shrink a response.
+TRANSACTION_LIST_TOOLS = {
+    "getTransactions",
+    "getTransactionsByAccount",
+    "getTransactionsByCategory",
+    "getTransactionsByPayee",
+    "getTransactionsByMonth",
+}
+
+TRANSACTION_LIST_HINT = (
+    "\n\nIMPORTANT: this can return thousands of transactions and overflow your "
+    "context. Always pass since_date (and until_date when you know it) covering only "
+    "the dates you need, such as the last 7 to 30 days. Without since_date, YNAB "
+    'returns a full year. Pass type="unapproved" or type="uncategorized" when '
+    "you only need those transactions."
+)
+
+MAX_TRANSACTION_LIST_CHARS = 200_000
+
+
+class TransactionListSizeLimit(Middleware):
+    """Reject oversized transaction lists so the model retries with a narrower range."""
+
+    async def on_call_tool(self, context: MiddlewareContext, call_next):
+        result = await call_next(context)
+        if context.message.name not in TRANSACTION_LIST_TOOLS:
+            return result
+        size = sum(len(getattr(block, "text", "")) for block in result.content)
+        if size > MAX_TRANSACTION_LIST_CHARS:
+            raise ToolError(
+                f"The response was too large ({size:,} characters, limit "
+                f"{MAX_TRANSACTION_LIST_CHARS:,}). Retry with a narrower "
+                "since_date/until_date range or a type filter."
+            )
+        return result
+
 
 def _deprecated_operation_ids(openapi_spec: dict) -> set[str]:
     """YNAB keeps deprecated endpoints around as no-ops; don't offer them as tools."""
@@ -38,10 +78,13 @@ def _deprecated_operation_ids(openapi_spec: dict) -> set[str]:
     }
 
 
-def _omit_openapi_output_schemas(_route: object, component: object) -> None:
-    """Cursor rejects some YNAB OpenAPI response schemas; tools do not need them."""
-    if isinstance(component, OpenAPITool):
-        component.output_schema = None
+def _customize_tool(route: HTTPRoute, component: object) -> None:
+    if not isinstance(component, OpenAPITool):
+        return
+    # Cursor rejects some YNAB OpenAPI response schemas; tools do not need them.
+    component.output_schema = None
+    if route.operation_id in TRANSACTION_LIST_TOOLS:
+        component.description = (component.description or "") + TRANSACTION_LIST_HINT
 
 
 def create_server() -> FastMCP:
@@ -71,15 +114,17 @@ def create_server() -> FastMCP:
         return MCPType.EXCLUDE if route.operation_id in deprecated else None
 
     # Create MCP server from OpenAPI spec
-    return FastMCP.from_openapi(
+    server = FastMCP.from_openapi(
         openapi_spec=openapi_spec,
         client=client,
         name="YNAB MCP Server",
         version=version("ynab-mcp-tools"),
         route_maps=EXCLUDED_ROUTES,
         route_map_fn=exclude_deprecated,
-        mcp_component_fn=_omit_openapi_output_schemas,
+        mcp_component_fn=_customize_tool,
     )
+    server.add_middleware(TransactionListSizeLimit())
+    return server
 
 
 def main() -> None:

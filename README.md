@@ -105,6 +105,8 @@ Two kinds of endpoints are left out on purpose:
 - `getPlanById` and `getPayees`: these return an entire plan export or the full payee list, which is too large for a model's context. The narrower tools above cover the same data.
 - Endpoints YNAB marks deprecated, such as `importTransactions`, which YNAB now accepts but ignores.
 
+YNAB's API has no pagination. The transaction list tools tell the model to pass `since_date`, `until_date`, or `type`, and if a transaction list still comes back over 200,000 characters, the tool returns an error asking the model to retry with a narrower range.
+
 ## Example prompts
 
 - "Show me my unapproved transactions from the last two weeks."
