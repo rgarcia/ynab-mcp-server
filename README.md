@@ -78,7 +78,7 @@ YNAB's API now calls budgets **plans**, so tools and parameters use that name (`
 | Area | Tools |
 | --- | --- |
 | User | `getUser` |
-| Plans | `getPlans`, `getPlanById`, `getPlanSettingsById` |
+| Plans | `getPlans`, `getPlanSettingsById` |
 | Accounts | `getAccounts`, `getAccountById`, `createAccount` |
 | Categories | `getCategories`, `getCategoryById`, `createCategory`, `updateCategory`, `getMonthCategoryById`, `updateMonthCategory`, `createCategoryGroup`, `updateCategoryGroup` |
 | Payees | `getPayeeById`, `createPayee`, `updatePayee`, `getPayeeLocations`, `getPayeeLocationById`, `getPayeeLocationsByPayee` |
@@ -89,7 +89,7 @@ YNAB's API now calls budgets **plans**, so tools and parameters use that name (`
 
 Two kinds of endpoints are left out on purpose:
 
-- `getPayees`: the full payee list is large enough to swamp a model's context. Use `getTransactionsByPayee` or `getPayeeById` instead.
+- `getPlanById` and `getPayees`: these return an entire plan export or the full payee list, which is too large for a model's context. The narrower tools above cover the same data.
 - Endpoints YNAB marks deprecated, such as `importTransactions`, which YNAB now accepts but ignores.
 
 ## Example prompts

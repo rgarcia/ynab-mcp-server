@@ -42,8 +42,8 @@ MCP tools from YNAB's OpenAPI specification. When the server starts, it:
    `https://api.ynab.com/papi/open_api_spec.yaml`.
 2. Parses the specification.
 3. Creates an authenticated HTTP client with your API token.
-4. Generates an MCP tool for each API endpoint, skipping `getPayees` (too
-   large for a model's context) and any endpoint the spec marks deprecated.
+4. Generates an MCP tool for each API endpoint, skipping `getPlanById` and
+   `getPayees` (too large for a model's context) and any endpoint the spec marks deprecated.
 
 ## Publishing
 

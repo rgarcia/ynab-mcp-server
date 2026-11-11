@@ -20,6 +20,11 @@ EXCLUDED_ROUTES = [
         pattern=r"^/plans/\{plan_id\}/payees$",
         mcp_type=MCPType.EXCLUDE,
     ),
+    RouteMap(
+        methods=["GET"],
+        pattern=r"^/plans/\{plan_id\}$",
+        mcp_type=MCPType.EXCLUDE,
+    ),
 ]
 
 
