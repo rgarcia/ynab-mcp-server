@@ -51,6 +51,19 @@ Both use the same JSON. Add it to:
 }
 ```
 
+To find the Claude Desktop config file without typing the path, open **Settings → Desktop App → Extensions (Manage) → Local MCP Servers → Edit Config**. Finder opens with the file selected. On macOS, right-click it and choose **Open With → TextEdit**, paste the JSON above, save, then quit and reopen Claude Desktop.
+
+### ChatGPT desktop app
+
+1. Open **Settings**, search for "MCP", and click **MCPs / Plugins**.
+2. Click **Add → Add MCP Server** and fill in:
+   - **Name**: `YNAB`
+   - **Command to launch**: `uvx`
+   - **Arguments**: `ynab-mcp-tools`
+   - **Environment Variables**: key `YNAB_API_TOKEN`, value `your-token-here`
+
+If a desktop app reports that it can't find `uvx`, replace `uvx` with the full path printed by `which uvx` in a terminal (usually `~/.local/bin/uvx`, written out as `/Users/<you>/.local/bin/uvx`).
+
 ### OpenCode
 
 Add to `~/.config/opencode/opencode.json`:
