@@ -2,6 +2,7 @@
 
 import os
 import sys
+from importlib.metadata import version
 
 import httpx2
 import yaml
@@ -69,6 +70,7 @@ def create_server() -> FastMCP:
         openapi_spec=openapi_spec,
         client=client,
         name="YNAB MCP Server",
+        version=version("ynab-mcp-tools"),
         route_maps=EXCLUDED_ROUTES,
         route_map_fn=exclude_deprecated,
         mcp_component_fn=_omit_openapi_output_schemas,
